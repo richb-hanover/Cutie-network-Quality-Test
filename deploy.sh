@@ -1,8 +1,7 @@
 #! /bin/bash
-# "One button" deploy script to roll out new version of TestMyInter.net
+# "One button" deploy script to roll out new version
 # Pull the new repo from Github
 # Request credentials to read from private repo
-# Run `yarn build` to create the proper files in build/
 
 # To run this script:
 #   ssh deploy@...
@@ -10,8 +9,8 @@
 #   sudo sh deploy.sh
 
 # add NVM so that yarn can find node (oh the tangled we we weave...)
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
 # Retrieve newest files from the repo
 #     - supply user name (richb-hanover)
@@ -23,6 +22,9 @@ npm install
 
 # build the app
 npm run build
+
+npm run preview
+# npm run preview --port 5173 # to simulate current "npm run dev"
 
 # Replace the public_html (toplevel) directory with the newly-built version
 # cd ..                                         # move up
@@ -43,4 +45,6 @@ npm run build
 # # and restart the apache server
 # sudo apachectl restart
 
-echo "All set! Check at http://netperf.bufferbloat.net:4173"
+ip_address=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
+
+echo "All set! Check at http://$ip_address:4173"

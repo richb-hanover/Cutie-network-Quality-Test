@@ -55,7 +55,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const path = event.url.pathname;
 	let agent = event.request.headers.get('user-agent');
 	if (!agent) agent = '';
-	const { browser } = UAParser(agent);
+	const { browser } = await UAParser(agent).withFeatureCheck();
 
 	if (path === '/') {
 		incrementVisitors();

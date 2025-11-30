@@ -18,7 +18,13 @@ To create a production version of your app:
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+To run the production build:
+
+```sh
+npm run preview
+# to run the production build on port 5173 to mimic "npm run dev"
+# npm run preview --port 5173
+```
 
 > To deploy your app, you may need to install an
 > [adapter](https://svelte.dev/docs/kit/adapters)
@@ -38,3 +44,4 @@ there are no errors or warnings when you run:
 - Add `?chartTest=1` to insert test data into the chart
 - Need to devise test cases that inject known data to verify
   the processing
+- Query `/api/stats` to return current running stats

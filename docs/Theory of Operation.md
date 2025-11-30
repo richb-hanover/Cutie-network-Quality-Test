@@ -2,16 +2,16 @@
 
 ## How WebRTC Network Stability Test works
 
-This project uses a WebRTC connection to
+Cutie uses a WebRTC connection to
 send "probe messages" multiple times a second
 to a server and use the resulting responses to
 measure latency, jitter, and packet loss.
 
 Specifically, the client inserts
-a timestamp and sequence number into its "probe" messages.
-The server is configured to echo those probe messages
-back to the client.
-By comparing the data in the probe message
+a timestamp and sequence number into its probe messages.
+The backend server immediately echoes those probe messages
+to the client.
+By comparing the data in the received probe message
 to the current time and sequence number,
 the client can then derive a fine-grained measurement of
 latency, jitter, and packet loss.
@@ -25,7 +25,8 @@ This is the heart of the measurement process:
   nulled or zeroed and an empty history, giving the monitor a
   clean slate to mutate.
 - `createLatencyMonitor` (src/lib/latency-probe.ts:55):
-  Factory that wires together timers, state, and callbacks for
+  A factory function that wires together
+  timers, state, and callbacks for
   probing latency over a data channel; configures defaults for
   cadence, loss detection, clock sources (now), timestamp
   formatting, and logging, and returns the public monitor API.
@@ -61,7 +62,8 @@ This is the heart of the measurement process:
   RTT calculation, and increments the sent counter, logging
   errors if transmission fails.
 - `handleMessage` (src/lib/latency-probe.ts:194):
-  Parses inbound JSON, validates that it’s a latency-probe
+  Parses a received (JSON) probe message,
+  validates that it’s a latency-probe
   response, resolves the matching pending probe, updates latency/
   jitter aggregates and history, and emits refreshed stats;
   returns whether the payload was recognized.
@@ -226,7 +228,7 @@ fussing and nudging, mostly with prompts to ChatGPT.
 
 **The process worked surprisingly well.**
 I am especially impressed by the small amount
-of manual work I needed to do.
+of manual work needed to get something working.
 Some thoughts:
 
 - Even though I didn't do it, I probably could have asked
@@ -237,9 +239,10 @@ Some thoughts:
   SvelteKit specific code. Alas.)
 - I was astonished that the web GUI code worked as well
   as it did right out of the box.
-  It displayed all the stats requested,
+  Given a vague description of what I wanted,
+  Codex created code to display all the stats requested,
   grouped in a logical format.
-  It also looked good both on desktop (wide) and
+  It also produced code that looks good both on desktop (wide) and
   phone (narrow) screens without instructions.
   (That may be a basic SvelteKit capability,
   but the ChatGPT code "just fit right in".)
@@ -250,7 +253,6 @@ Some thoughts:
 - I also edited the "hero text" at the top of the web GUI.
   It was far simpler than telling ChatGPT to change the
   wording there... (And I could iterate much faster.)
-
 - When I asked ChatGPT to add the other two charts,
   it created two more source files with essentially
   identical code. They worked fine.
@@ -258,10 +260,10 @@ Some thoughts:
   it had to modify three files.
   So I asked ChatGPT to factor out the common charting code and
   it was very successful, and needed no further fussing.
-
 - ChatGPT "understands" (that is, does the "right thing")
   with imprecise requests.
-  I asked it to display elapsed time, and it chose a format of
+  For example, I asked it to display elapsed time,
+  and it chose a format of
   `##s`, then `##m ##s` without my instruction.
 
 Will I ever "just start hacking code" again? I don't think so.

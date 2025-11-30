@@ -4,7 +4,7 @@ The Cutie test measures the quality of the network
 by establishing a WebRTC connection to its backend server
 and sending short messages containing
 a sequence number and timestamp.
-The backend echoes those packets, so the GUI can measure
+The backend immediately echoes those messages, so the GUI can measure
 latency, jitter, and packet loss to
 produce charts of the performance of the network.
 See the screen shot below:
@@ -46,14 +46,14 @@ the values below:
 
 ## Demo site
 
-You can try Cutie from the test at the
-demo site at [http://netperf.bufferbloat.net:5173](http://netperf.bufferbloat.net:5173)
+You can try Cutie from the demo site at
+[http://netperf.bufferbloat.net:5173](http://netperf.bufferbloat.net:5173)
 
 Notes:
 
-- The base ICMP ping time to that site is about 30 ms
+- The base ICMP ping time to that server is about 30 ms
   (it's a pretty slow VPS).
-  Consequently, Cutie's lowest latency tends to be above 30 ms.
+  Consequently, Cutie's lowest latency tends to be a bit higher than 30 ms.
 - You could also install a Cutie server on a local computer
   to test your local network's abilities.
 
@@ -109,9 +109,9 @@ in a quick Google search for "cutie network test".
 
 ## Questions & Feedback
 
-This is version 0.2.4, and is early, alpha-quality code.
+This is version 0.2.6, and is early, alpha-quality code.
 Read the
-[Provenance - Vibe Engineering](.docs/Theory%20of%20Operation.md#provenance---vibe-engineering)
+[Provenance - Vibe Engineering](./docs/Theory%20of%20Operation.md#provenance----vibe-engineering-)
 information to see how this was derived.
 
 I would be pleased to get feedback or bug reports on the
