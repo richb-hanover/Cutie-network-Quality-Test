@@ -5,7 +5,7 @@
 
 # To run this script:
 #   ssh deploy@...
-#   cd /home/testmyinter/Testmyinter.net
+#   cd /src/Cutie-network-
 #   sudo sh deploy.sh
 
 # add NVM so that yarn can find node (oh the tangled we we weave...)
@@ -23,27 +23,16 @@ npm install
 # build the app
 npm run build
 
-npm run preview
-# npm run preview --port 5173 # to simulate current "npm run dev"
+# Create timestamp in format yyyy-mm-dd-hh-mm-ss
+timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
+# Log file name - save all the log files into the "logs" directory
+logfile="logs/cutie-$timestamp.txt"
 
-# Replace the public_html (toplevel) directory with the newly-built version
-# cd ..                                         # move up
-# sudo rm -rf public_html                       # ding the old one
-# sudo mv TestMyInter.net/build public_html     # replace with the newly-rebuilt
-# sudo chown www-data:www-data -R public_html   # change owner to make web pages
+# Run npm dev with LOG_LEVEL=2 and nohup
+# nohup env LOG_LEVEL=2 npm run dev > "$logfile" 2>&1 &
 
-# # testmyinterimages.net is served from a CDN, so needs its own copy of the images
-# # Copy the entire directory from public/imagestoplevel directory
-# # to IMAGESTOPLEVEL - the top level directory of testmyinterimages.net
-# REPOTOPLEVEL="/home/testmyinter/TestMyInter.net/public/imagestoplevel*"
-# IMAGESTOPLEVEL="/home/testmyinterimages/public_html/"
-# # sudo cp -p public/.htaccess $IMAGESTOPLEVEL
-# # sudo cp -p public/images-index.html $IMAGESTOPLEVEL/index.html
-# sudo cp -pR $REPOTOPLEVEL       $IMAGESTOPLEVEL
-# sudo chown www-data:www-data -R $IMAGESTOPLEVEL
-
-# # and restart the apache server
-# sudo apachectl restart
+nohup env LOG_LEVEL=2 npm run preview > "$logfile" 2>&1 &
+# Use npm run preview --port 5173" # to simulate current "npm run dev"
 
 ip_address=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
 
