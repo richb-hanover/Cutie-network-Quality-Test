@@ -14,6 +14,10 @@
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
 # ensure that failures get handled/logged
+if [ -z "${BASH_VERSION:-}" ]; then
+	exec /bin/bash "$0" "$@"
+fi
+
 set -euo pipefail
 
 # Ensure logs directory exists and trim to ten newest files before writing
