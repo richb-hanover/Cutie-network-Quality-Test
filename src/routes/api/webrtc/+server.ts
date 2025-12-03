@@ -6,7 +6,11 @@ import {
 	webrtcConnections,
 	incrementWebrtcConnections
 } from '$lib/server/runtimeState';
-import { connections, finalizeConnection, type ManagedConnection } from '$lib/server/webrtcRegistry';
+import {
+	connections,
+	finalizeConnection,
+	type ManagedConnection
+} from '$lib/server/webrtcRegistry';
 import { getLogger } from '../../../lib/logger';
 const logger = getLogger('server');
 

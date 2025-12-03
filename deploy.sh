@@ -1,4 +1,5 @@
 #! /bin/bash
+
 # "One button" deploy script to roll out new version
 # Pull the new repo from Github
 # Request credentials to read from private repo
@@ -6,32 +7,119 @@
 # To run this script:
 #   ssh deploy@...
 #   cd /src/Cutie-network-
-#   sudo sh deploy.sh
+#   sudo bash deploy.sh
 
 # add NVM so that yarn can find node (oh the tangled we we weave...)
 # export NVM_DIR="$HOME/.nvm"
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
-# Retrieve newest files from the repo
-#     - supply user name (richb-hanover)
-#     - supply Personal Access Token
-git pull
+# ensure that failures get handled/logged
+set -euo pipefail
 
-# pull all the dependencies
-npm install
+# Ensure logs directory exists and trim to ten newest files before writing
+logs_dir="logs"
+mkdir -p "$logs_dir"
 
-# build the app
-npm run build
+cleanup_old_logs() {
+	local old_logs
+  # find old log files
+	old_logs=$(ls -1t "$logs_dir" 2>/dev/null | tail -n +11)
+	if [ -z "$old_logs" ]; then
+		return
+	fi
+  # prune them
+	printf '%s\n' "$old_logs" | while IFS= read -r log_name; do
+		[ -n "$log_name" ] && rm -f "$logs_dir/$log_name"
+	done
+}
+
+cleanup_old_logs
 
 # Create timestamp in format yyyy-mm-dd-hh-mm-ss
 timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
 # Log file name - save all the log files into the "logs" directory
-logfile="logs/cutie-$timestamp.txt"
+logfile="$logs_dir/cutie-$timestamp.txt"
+
+log_and_run() {
+	local description=$1
+	shift
+	printf '\n==> %s\n' "$description" | tee -a "$logfile"
+	"$@" 2>&1 | tee -a "$logfile"
+}
+
+find_existing_preview_pids() {
+	local port=$1
+	if command -v lsof >/dev/null 2>&1; then
+		lsof -ti tcp:"$port" -sTCP:LISTEN 2>/dev/null || true
+	elif command -v pgrep >/dev/null 2>&1; then
+		pgrep -f "npm run preview" 2>/dev/null || true
+	else
+		printf ''
+	fi
+}
+
+ensure_no_existing_preview() {
+	local port=$1
+	local existing_pids prompt_response
+	existing_pids=$(find_existing_preview_pids "$port")
+	if [ -z "$existing_pids" ]; then
+		return
+	fi
+
+	echo "Detected Cutie preview already running on port $port (PID(s): $existing_pids)" | tee -a "$logfile"
+	if ! read -r -p "Kill existing process(es) and continue? [y/N] " prompt_response; then
+		prompt_response="n"
+	fi
+
+	case "$prompt_response" in
+		[yY]|[yY][eE][sS])
+			for pid in $existing_pids; do
+				if kill "$pid" 2>/dev/null; then
+					echo "Killed process $pid" | tee -a "$logfile"
+				else
+					echo "Failed to kill process $pid" | tee -a "$logfile"
+				fi
+			done
+			;;
+		*)
+			echo "Aborting deploy; stop the existing instance and re-run." | tee -a "$logfile"
+			exit 1
+			;;
+	esac
+}
+
+# Retrieve newest files from the repo
+log_and_run "git pull" git pull
+
+# pull all the dependencies
+log_and_run "npm install" npm install
+
+# build the app
+log_and_run "npm run build" npm run "build"
 
 # get this host's IP address & and desired test port
-ip_address="$(ip -4 route get 1.1.1.1 | awk '/src/ { print $NF; exit }')"
+detect_host_ip() {
+	if command -v ip >/dev/null 2>&1; then
+		ip -4 route get 1.1.1.1 | awk '/src/ { print $NF; exit }'
+	elif command -v ipconfig >/dev/null 2>&1; then
+		local default_iface
+		default_iface=$(route -n get default 2>/dev/null | awk '/interface: /{ print $2; exit }')
+		if [ -n "$default_iface" ]; then
+			ipconfig getifaddr "$default_iface" 2>/dev/null
+		fi
+	fi
+}
+
+ip_address="$(detect_host_ip)"
+if [ -z "$ip_address" ]; then
+	echo "Warning: Could not determine host IP; defaulting to 127.0.0.1" | tee -a "$logfile"
+	ip_address="127.0.0.1"
+fi
+
 ip_port=5173
 
-nohup env LOG_LEVEL=2 npm run preview -- --host "$ip_address" --port "$ip_port"  > "$logfile" 2>&1 &
+ensure_no_existing_preview "$ip_port"
 
-echo "All set! Check at http://$ip_address:$ip_port"
+nohup env LOG_LEVEL=2 npm run "preview" -- --host "$ip_address" --port "$ip_port" >> "$logfile" 2>&1 &
+
+echo "All set! Check at http://$ip_address:$ip_port" | tee -a "$logfile"

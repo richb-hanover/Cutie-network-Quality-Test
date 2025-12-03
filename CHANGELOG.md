@@ -9,6 +9,13 @@
 
 ---
 
+## Version 0.2.9 - 2025-12-03
+
+- Improve _deploy.sh_. It now removes all but the 10
+  most recent log files from _logs/_,
+  checks and kills previous Cutie instances, and
+  logs all the steps of the install/build process.
+
 ## Version 0.2.8 - 2025-12-02
 
 - Updated `api/stats` to display ConnectionID,
@@ -69,8 +76,6 @@
 - Display the ConnectionID in the
   Server object message at the bottom
 - Bump version to 0.2.0
-
----
 
 ## Version 0.1.0 - 2025-10-17
 

@@ -40,7 +40,6 @@ Ideas that have occurred to me. Some might be good ones...
 - Screenshot from DH - in 3K waiting room. First "outage" was from running betterspeedtest.sh from my computer. Second was with my computer idle
 - Loss of connection should not say "Data channel closed" (SB sth like "Loss connection to other end"
 
-
 ## Testing ideas
 
 - READ THE CODE!
@@ -52,8 +51,9 @@ Ideas that have occurred to me. Some might be good ones...
 - Devise test cases to make sure arriving RTCProbes
   are sorted properly and MOS scores are correct
 - Consider testing with WebRTC Leak Shield or uBlock’s “Prevent WebRTC IP leak”
-- What does Percent loss chart show? Instantaneous? (What would that mean?) 10-second? (Would have 100 samples in 10 seconds...)
- 
+- What does Percent loss chart show? Instantaneous? (What would that mean?)
+  10-second? (Would have 100 samples in 10 seconds...)
+
 ## Done
 
 All these items had been in the "to-do" section, but have been completed:

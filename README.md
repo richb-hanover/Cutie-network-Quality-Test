@@ -75,8 +75,10 @@ npm run dev
 
 # To leave a test server running
 nohup npm run dev &
-
 ```
+
+To start a **production server**, read the
+[CHECKLIST](./docs/CHECKLIST.md) for details.
 
 As noted in the [Theory of Operation](./docs/Theory%20of%20Operation.md),
 this was developed in VSCode with the Codex LLM plugin.
