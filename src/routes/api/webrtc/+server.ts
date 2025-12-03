@@ -6,7 +6,7 @@ import {
 	webrtcConnections,
 	incrementWebrtcConnections
 } from '$lib/server/runtimeState';
-import { connections, type ManagedConnection } from '$lib/server/webrtcRegistry';
+import { connections, finalizeConnection, type ManagedConnection } from '$lib/server/webrtcRegistry';
 import { getLogger } from '../../../lib/logger';
 const logger = getLogger('server');
 
@@ -41,7 +41,7 @@ function normaliseLocalCandidate(candidate: RTCIceCandidateInit): RTCIceCandidat
 
 function registerConnection(pc: RTCPeerConnection): string {
 	const id = crypto.randomUUID();
-	const managed: ManagedConnection = { id, pc, createdAt: new Date() };
+	const managed: ManagedConnection = { id, pc, startedAt: new Date() };
 
 	pc.onconnectionstatechange = () => {
 		if (
@@ -58,7 +58,7 @@ function registerConnection(pc: RTCPeerConnection): string {
 			// 	gathering: pc.iceGatheringState
 			// });
 
-			connections.delete(id);
+			finalizeConnection(id);
 		}
 	};
 
@@ -321,7 +321,7 @@ export const DELETE: RequestHandler = async ({ url }) => {
 	logger.debug(`Deleting connection: ${managed.id}`);
 	// console.log(`Deleting connection: ${managed.id}`);
 	managed.pc.close();
-	connections.delete(connectionId);
+	finalizeConnection(connectionId);
 
 	return json({ closed: true });
 };

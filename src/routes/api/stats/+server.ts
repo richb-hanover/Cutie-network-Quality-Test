@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { serverStartTime, webrtcConnections, numberVisitors } from '$lib/server/runtimeState';
-import { connections } from '$lib/server/webrtcRegistry';
+import { connections, oldConnections } from '$lib/server/webrtcRegistry';
 
 function formatDuration(milliseconds: number): string {
 	const totalSeconds = Math.floor(milliseconds / 1000);
@@ -13,17 +13,43 @@ function formatDuration(milliseconds: number): string {
 	return `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
+function formatDateTime(date: Date): string {
+	const pad = (value: number) => value.toString().padStart(2, '0');
+	const year = date.getFullYear();
+	const month = pad(date.getMonth() + 1);
+	const day = pad(date.getDate());
+	const hours = pad(date.getHours());
+	const minutes = pad(date.getMinutes());
+	const seconds = pad(date.getSeconds());
+	return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
 export const GET: RequestHandler = () => {
 	const now = new Date();
 	const elapsedMs = now.getTime() - serverStartTime.getTime();
+	const connectionDetails = Array.from(connections.values()).map((connection) => {
+		const durationMs = now.getTime() - connection.startedAt.getTime();
+		return {
+			connectionId: connection.id,
+			startTime: formatDateTime(connection.startedAt),
+			duration: formatDuration(durationMs)
+		};
+	});
+	const recentConnectionDetails = oldConnections.map((connection) => ({
+		connectionId: connection.id,
+		startTime: formatDateTime(connection.startedAt),
+		duration: formatDuration(connection.durationMs)
+	}));
 
 	return json({
 		totalVisitors: numberVisitors,
 		currentConnections: connections.size,
 		totalConnections: webrtcConnections,
-		serverStartTime: serverStartTime.toLocaleString(),
-		currentTime: now.toLocaleString(),
+		serverStartTime: formatDateTime(serverStartTime),
+		currentTime: formatDateTime(now),
 		runningTime: formatDuration(elapsedMs),
-		connectionIds: Array.from(connections.keys())
+		connectionIds: Array.from(connections.keys()),
+		connections: connectionDetails,
+		oldConnections: recentConnectionDetails
 	});
 };

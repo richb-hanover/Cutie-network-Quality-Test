@@ -9,6 +9,13 @@
 
 ---
 
+## Version 0.2.8 - 2025-12-02
+
+- Updated `api/stats` to display ConnectionID,
+  connection start time and duration
+- Also display the 10 most recent ConnectionIDs
+  with their stats to see how they perform
+
 ## Version 0.2.7 - 2025-12-02
 
 - Update _deploy.sh_ to run `npm run preview`
