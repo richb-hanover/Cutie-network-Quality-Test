@@ -111,7 +111,7 @@ in a quick Google search for "cutie network test".
 
 This is version 0.2.6, and is early, alpha-quality code.
 Read the
-[Provenance - Vibe Engineering](./docs/Theory%20of%20Operation.md#provenance----vibe-engineering-)
+[Provenance - Vibe Engineering](./docs/Theory%20of%20Operation.md#provenance---vibe-engineering)
 information to see how this was derived.
 
 I would be pleased to get feedback or bug reports on the

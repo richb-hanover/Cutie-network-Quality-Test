@@ -9,6 +9,14 @@
 
 ---
 
+## Version 0.2.7 - 2025-12-02
+
+- Update _deploy.sh_ to run `npm run preview`
+  (instead of `npm run dev` on the remote host)
+- Deploy script forces port 5173 for stability for other testers
+- Fixed link to Provenence in _Theory of Operation_
+- Added a couple test cases to _To Do_
+
 ## Version 0.2.6 - 2025-11-21
 
 - Add `/api/stats` to return runtime stats

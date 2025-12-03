@@ -28,12 +28,10 @@ timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
 # Log file name - save all the log files into the "logs" directory
 logfile="logs/cutie-$timestamp.txt"
 
-# Run npm dev with LOG_LEVEL=2 and nohup
-# nohup env LOG_LEVEL=2 npm run dev > "$logfile" 2>&1 &
+# get this host's IP address & and desired test port
+ip_address="$(ip -4 route get 1.1.1.1 | awk '/src/ { print $NF; exit }')"
+ip_port=5173
 
-nohup env LOG_LEVEL=2 npm run preview > "$logfile" 2>&1 &
-# Use npm run preview --port 5173" # to simulate current "npm run dev"
+nohup env LOG_LEVEL=2 npm run preview -- --host "$ip_address" --port "$ip_port"  > "$logfile" 2>&1 &
 
-ip_address=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
-
-echo "All set! Check at http://$ip_address:4173"
+echo "All set! Check at http://$ip_address:$ip_port"

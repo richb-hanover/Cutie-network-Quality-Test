@@ -37,6 +37,9 @@ Ideas that have occurred to me. Some might be good ones...
 - In one test run, Min. MOS was shown as 0.99 (not even possible), chart didn't show it.
 - Are the Min and Max values displaying the 10s Averages?
 - `nohup npm run dev &` on atl stops accepting WebRTC connections
+- Screenshot from DH - in 3K waiting room. First "outage" was from running betterspeedtest.sh from my computer. Second was with my computer idle
+- Loss of connection should not say "Data channel closed" (SB sth like "Loss connection to other end"
+
 
 ## Testing ideas
 
@@ -49,7 +52,8 @@ Ideas that have occurred to me. Some might be good ones...
 - Devise test cases to make sure arriving RTCProbes
   are sorted properly and MOS scores are correct
 - Consider testing with WebRTC Leak Shield or uBlock’s “Prevent WebRTC IP leak”
-
+- What does Percent loss chart show? Instantaneous? (What would that mean?) 10-second? (Would have 100 samples in 10 seconds...)
+ 
 ## Done
 
 All these items had been in the "to-do" section, but have been completed:
@@ -109,3 +113,4 @@ solves it.)_
 - If latency (or other value) is greater than Y-axis, adjust Y-axis. (Or peg it...)
 - Server init code (printing version, etc) should appear first in output
 - In the server connected message, include the number of current connections, maybe total connections since start time
+- Add `/api/stats` to display current stats
