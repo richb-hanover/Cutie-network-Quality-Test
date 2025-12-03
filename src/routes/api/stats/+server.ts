@@ -42,12 +42,12 @@ export const GET: RequestHandler = () => {
 	}));
 
 	return json({
-		totalVisitors: numberVisitors,
-		currentConnections: connections.size,
-		totalConnections: webrtcConnections,
 		serverStartTime: formatDateTime(serverStartTime),
 		currentTime: formatDateTime(now),
 		runningTime: formatDuration(elapsedMs),
+		totalVisitors: numberVisitors,
+		currentConnections: connections.size,
+		totalConnections: webrtcConnections,
 		connectionIds: Array.from(connections.keys()),
 		connections: connectionDetails,
 		oldConnections: recentConnectionDetails
