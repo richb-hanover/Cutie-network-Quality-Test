@@ -14,6 +14,19 @@ import {
 import { getLogger } from '../../../lib/logger';
 const logger = getLogger('server');
 
+/**
+ * When the client requests the main page ("/"), it immediately makes a POST
+ * to /api/webrtc, containing an SDP offer with ICE candidates that the
+ * server (this end) can use to establish a complete WebRTC connection.
+ *
+ * The server then creates a response with an answer SDP with its candidates
+ * (that are available to communicate) along with some kind of connection ID.
+ * The client then proceeds to send latency probes that connection ID
+ *
+ * Finally, the server end sets up an onmessage() handler that simply echoes
+ * the latency probes back to the client.
+ */
+
 const { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } = wrtc;
 
 function normaliseLocalCandidate(candidate: RTCIceCandidateInit): RTCIceCandidateInit {
@@ -42,7 +55,23 @@ function normaliseLocalCandidate(candidate: RTCIceCandidateInit): RTCIceCandidat
 		candidate: candidate.candidate.replace(address, '127.0.0.1')
 	};
 }
-
+/**
+ * registerConnection()
+ * @param pc
+ * @returns id to reference the connection info
+ *
+ * registerConnection() takes a new RTCPeerConnection,
+ * generates a UUID for it, and wraps the pair of {id, pc}
+ * together with the timestamp (startedAt).
+ *
+ * It then installs an onconnectionstatechange handler:
+ * whenever the peer enters a terminal state (closed, failed, or disconnected)
+ * the helper logs the state and calls finalizeConnection() to remove it
+ * from the active connections map and record its duration for /api/stats.
+ *
+ * After wiring that cleanup hook, it stores the new ManagedConnection in the
+ * connections map keyed by its UUID and returns the ID so the rest of the handler can reference it.
+ */
 function registerConnection(pc: RTCPeerConnection): string {
 	const id = crypto.randomUUID();
 	const managed: ManagedConnection = { id, pc, startedAt: new Date() };
@@ -53,15 +82,9 @@ function registerConnection(pc: RTCPeerConnection): string {
 			pc.connectionState === 'failed' ||
 			pc.connectionState === 'disconnected'
 		) {
-			logger.debug('Connection state changed', {
-				state: pc.iceConnectionState,
-				gathering: pc.iceGatheringState
-			});
-			// console.log('Connection state changed', {
-			// 	state: pc.iceConnectionState,
-			// 	gathering: pc.iceGatheringState
-			// });
-
+			logger.info(
+				`Connection state ended: state: ${pc.iceConnectionState} gathering: ${pc.iceGatheringState}`
+			);
 			finalizeConnection(id);
 		}
 	};
@@ -70,17 +93,49 @@ function registerConnection(pc: RTCPeerConnection): string {
 	return id;
 }
 
+/**
+ * POST() - a POST handler for /api/webrtc
+ * POST handles the entire server-side half of SDP exchange,
+ * candidate wiring, logging, and connection bookkeeping
+ * for each new peer.
+
+ * @param param0 
+ * @returns 
+ *
+	* The handler validates the incoming JSON payload,
+	* ensuring it contains a valid SDP offer plus any ICE candidates from the client.
+	* Invalid payloads short-circuit with error(400, …).
+	* 
+	* It creates a new RTCPeerConnection with Google’s public STUN server,
+	* wires up logging for ICE/connection state changes, and collects
+	* locally generated ICE candidates after normalizing .local addresses to 127.0.0.1.
+	* 
+	* When the browser opens a data channel, the server logs the remote candidate info,
+	* emits a “welcome” message, and echoes back any messages it receives,
+	* incrementing the running WebRTC connection count.
+	* 
+	* The function sets the remote SDP, adds all provided client candidates
+	* (and explicitly signals end-of-candidates), then creates a local answer SDP and stores it.
+	* During this process it tracks connectionId = registerConnection(pc)
+	* so the new peer is managed and cleaned up automatically when it disconnects.
+	* 
+	* Finally, it responds with status 201 containing the newly generated SDP answer,
+	* the assigned connectionId, and the list of gathered local ICE candidates (normalized)
+	* so the client can complete ICE negotiation.
+ */
 export const POST: RequestHandler = async ({ request }) => {
 	let offer: RTCSessionDescriptionInit;
 	let clientCandidates: RTCIceCandidateInit[] = [];
+	let payload;
 	try {
-		const payload = await request.json();
+		payload = await request.json();
 		offer = payload?.offer;
 		clientCandidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
 		if (!offer?.type || !offer?.sdp) {
 			throw new Error('Invalid offer');
 		}
 	} catch {
+		logger.info(`Expected JSON body with valid WebRTC offer: ${JSON.stringify(payload)}`);
 		throw error(400, 'Expected JSON body with valid WebRTC offer');
 	}
 
@@ -95,23 +150,15 @@ export const POST: RequestHandler = async ({ request }) => {
 	} as RTCConfiguration);
 
 	pc.oniceconnectionstatechange = () => {
-		logger.debug('ICE connection state changed', {
-			id: connectionId,
-			state: pc.iceConnectionState,
-			gathering: pc.iceGatheringState,
-			connections: connections.size
-		});
-		console.log('ICE connection state changed', {
-			id: connectionId,
-			state: pc.iceConnectionState,
-			gathering: pc.iceGatheringState,
-			connections: connections.size
-		});
+		logger.debug(
+			`ICE state changed; id: ${connectionId} state: ${pc.iceConnectionState} gathering: ${pc.iceGatheringState} connections: ${connections.size}`
+		);
 	};
 
 	pc.onconnectionstatechange = () => {
-		logger.debug(`Server connection state changed: ${pc.connectionState}`);
-		// console.log(`Server connection state changed: ${pc.connectionState}`);
+		logger.info(
+			`Server connection state changed: id: ${connectionId} state: ${pc.connectionState}`
+		);
 	};
 
 	const localCandidates: RTCIceCandidateInit[] = [];
@@ -130,16 +177,14 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			if (candidateInit?.candidate) {
 				const normalised = normaliseLocalCandidate(candidateInit as RTCIceCandidateInit);
-				// console.debug('Server gathered ICE candidate', normalised);
-				// logger.info('Server gathered ICE candidate', normalised);
 				localCandidates.push(normalised);
 			}
 		}
 	};
 
 	pc.onicecandidateerror = (_event: unknown) => {
-		// console.error('Server ICE candidate error', event);
-		// logger.info('Server ICE candidate error', _event);
+		const foo: any = _event;
+		logger.info(`Server ICE candidate error ${foo.address} ${foo.errorCode} "${foo.errorText}"`);
 	};
 
 	pc.ondatachannel = (event) => {
@@ -180,8 +225,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			});
 
 			if (!selectedPair) {
-				logger.debug('No succeeded ICE candidate pair yet', { connectionId });
-				// console.log('No succeeded ICE candidate pair yet', { connectionId });
+				logger.info('No succeeded ICE candidate pair yet', { connectionId });
 				return;
 			}
 
@@ -189,15 +233,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			const remote = remoteCandidates.get(pair.remoteCandidateId ?? '');
 
 			if (!remote) {
-				logger.debug('Selected pair has no matching remote candidate', {
-					connectionId,
-					pair: pair.id
-				});
-				// console.log('Selected pair has no matching remote candidate', {
-				// 	connectionId,
-				// 	pair: pair.id
-				// });
-
+				logger.info(
+					`Selected pair has no matching remote candidate: connectionID: ${connectionId} pair: ${pair.id}`
+				);
 				return;
 			}
 
@@ -205,19 +243,10 @@ export const POST: RequestHandler = async ({ request }) => {
 			const port = remote.port ?? remote.portNumber ?? 'unknown';
 
 			// logger.info(`Remote ICE Candidate selected: ${JSON.stringify(remote)}`);
-			// "ip" is frequently "" as some kind of security measure
-			logger.debug('Remote ICE candidate selected', {
-				connectionId,
-				ip,
-				port,
-				foundation: remote.foundation
-			});
-			// console.log('Remote ICE candidate selected', {
-			// 	connectionId,
-			// 	ip,
-			// 	port,
-			// 	foundation: remote.foundation
-			// });
+			// "ip{" is frequently "" as some kind of security measure
+			logger.debug(
+				`Remote ICE candidate selected: connection: ${connectionId} ip: ${ip} port: ${port} foundation: ${remote.foundation}`
+			);
 		};
 
 		// When the data channel opens, send a welcome message
@@ -225,20 +254,18 @@ export const POST: RequestHandler = async ({ request }) => {
 		// shows up in the web GUI)
 		channel.onopen = () => {
 			const state = connectionId ?? 'pending';
-			logger.info(`Connection established: ${state} (${connections.size} total)`);
+			logger.info(`Connection established: ${state}`);
 			incrementWebrtcConnections();
 			logRemoteAddress().catch((error) => {
 				logger.info('Failed to fetch remote ICE stats', { connectionId, error });
 			});
 
-			channel.send(
-				JSON.stringify({
-					type: 'welcome',
-					message: 'RTC channel established with server',
-					at: new Date().toLocaleString(),
-					connections: `Current: ${connections.size} Total: ${webrtcConnections} since: ${serverStartTime.toLocaleString()}`
-				})
-			);
+			const msg = {
+				type: 'welcome',
+				message: 'RTC channel established with server',
+				at: new Date().toLocaleString()
+			};
+			channel.send(JSON.stringify(msg));
 		};
 		channel.onclose = () => {
 			logger.debug(`Connection closed: ${connectionId}`);

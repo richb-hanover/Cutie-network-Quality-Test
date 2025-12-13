@@ -27,6 +27,7 @@ mkdir -p "$logs_dir"
 cleanup_old_logs() {
 	local old_logs
   # find old log files
+	# shellcheck disable=SC2012 # using ls -t for simple time-sorted pruning
 	old_logs=$(ls -1t "$logs_dir" 2>/dev/null | tail -n +11)
 	if [ -z "$old_logs" ]; then
 		return
@@ -103,8 +104,24 @@ log_and_run "npm run build" npm run "build"
 
 # get this host's IP address & and desired test port
 detect_host_ip() {
+	local candidate
 	if command -v ip >/dev/null 2>&1; then
-		ip -4 route get 1.1.1.1 | awk '/src/ { print $NF; exit }'
+		candidate=$(
+			ip -4 route get 1.1.1.1 2>/dev/null |
+				awk '{ for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit } }'
+		)
+		if [ -n "$candidate" ] && [ "$candidate" != "0.0.0.0" ] && [ "$candidate" != "0000" ]; then
+			echo "$candidate"
+			return
+		fi
+		candidate=$(
+			ip -4 addr show scope global 2>/dev/null |
+				awk '/inet / { sub(/\/.*/, "", $2); print $2; exit }'
+		)
+		if [ -n "$candidate" ]; then
+			echo "$candidate"
+			return
+		fi
 	elif command -v ipconfig >/dev/null 2>&1; then
 		local default_iface
 		default_iface=$(route -n get default 2>/dev/null | awk '/interface: /{ print $2; exit }')

@@ -139,32 +139,32 @@
 		<tbody>
 			<tr>
 				<th>MOS Quality</th>
-				<td>{formatScore(mosInstant)}</td>
-				<td>{formatScore(bounds.mos.min)}</td>
-				<td>{formatScore(bounds.mos.max)}</td>
-				<td>{formatScore(mosAverage)}</td>
+				<td><span class="metric-value">{formatScore(mosInstant)}</span></td>
+				<td><span class="metric-value">{formatScore(bounds.mos.min)}</span></td>
+				<td><span class="metric-value">{formatScore(bounds.mos.max)}</span></td>
+				<td><span class="metric-value">{formatScore(mosAverage)}</span></td>
 			</tr>
 
 			<tr>
 				<th>Packet Loss %</th>
-				<td>{formatPercent(totalPacketLossPercent)}</td>
-				<td>{formatPercent(bounds.packetLossPercent.min)}</td>
-				<td>{formatPercent(bounds.packetLossPercent.max)}</td>
-				<td>{formatPercent(recent.packetLossPercent)}</td>
+				<td><span class="metric-value">{formatPercent(totalPacketLossPercent)}</span></td>
+				<td><span class="metric-value">{formatPercent(bounds.packetLossPercent.min)}</span></td>
+				<td><span class="metric-value">{formatPercent(bounds.packetLossPercent.max)}</span></td>
+				<td><span class="metric-value">{formatPercent(recent.packetLossPercent)}</span></td>
 			</tr>
 			<tr>
 				<th>Latency</th>
-				<td>{formatMs(latencyStats.lastLatencyMs)}</td>
-				<td>{formatMs(bounds.latencyMs.min)}</td>
-				<td>{formatMs(bounds.latencyMs.max)}</td>
-				<td>{formatMs(recent.averageLatencyMs)}</td>
+				<td><span class="metric-value">{formatMs(latencyStats.lastLatencyMs)}</span></td>
+				<td><span class="metric-value">{formatMs(bounds.latencyMs.min)}</span></td>
+				<td><span class="metric-value">{formatMs(bounds.latencyMs.max)}</span></td>
+				<td><span class="metric-value">{formatMs(recent.averageLatencyMs)}</span></td>
 			</tr>
 			<tr>
 				<th>Jitter</th>
-				<td>{formatMs(latencyStats.jitterMs)}</td>
-				<td>{formatMs(bounds.jitterMs.min)}</td>
-				<td>{formatMs(bounds.jitterMs.max)}</td>
-				<td>{formatMs(recent.averageJitterMs)}</td>
+				<td><span class="metric-value">{formatMs(latencyStats.jitterMs)}</span></td>
+				<td><span class="metric-value">{formatMs(bounds.jitterMs.min)}</span></td>
+				<td><span class="metric-value">{formatMs(bounds.jitterMs.max)}</span></td>
+				<td><span class="metric-value">{formatMs(recent.averageJitterMs)}</span></td>
 			</tr>
 		</tbody>
 	</table>
@@ -187,8 +187,16 @@
 						<tr class={sample.status}>
 							<td>{sample.seq}</td>
 							<td>{sample.status}</td>
-							<td>{sample.latencyMs !== null ? `${sample.latencyMs.toFixed(2)} ms` : '—'}</td>
-							<td>{sample.jitterMs !== null ? `${sample.jitterMs.toFixed(2)} ms` : '—'}</td>
+							<td>
+								<span class="metric-value">
+									{sample.latencyMs !== null ? `${sample.latencyMs.toFixed(2)} ms` : '—'}
+								</span>
+							</td>
+							<td>
+								<span class="metric-value">
+									{sample.jitterMs !== null ? `${sample.jitterMs.toFixed(2)} ms` : '—'}
+								</span>
+							</td>
 							<td>{sample.at}</td>
 						</tr>
 					{/each}
@@ -222,6 +230,13 @@
 
 	.latency-summary th:first-child {
 		width: 40%;
+	}
+
+	.metric-value {
+		display: inline-block;
+		min-width: 9ch;
+		text-align: right;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.latency-summary {

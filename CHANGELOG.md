@@ -7,6 +7,13 @@
   - Added `injectLatencyInfo()` function that takes an array of triples and injects them into the chart just as if they had been received "in real time"
   - Added `getLatencyMonitorStats()` that retrieves `{ MOSQuality, PacketLoss, Latency, Jitter }` with arrays of four values that mirror those in the Latency Monitor.
 
+- Set fixed-width fields for ms values in Latency Monitor panel
+- Add new API `/api/beacon` that is triggered when the client changes, shows/hides, etc.
+  the Cutie tab; triggered by _lifecycle-beacon.ts_
+- More documentation/comments for `api/webrtc`
+- Slightly tuned up _deploy.sh_ script
+- Bump version to 0.2.10
+
 ---
 
 ## Version 0.2.9 - 2025-12-03

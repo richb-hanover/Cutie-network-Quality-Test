@@ -3,12 +3,9 @@
 Ideas that have occurred to me. Some might be good ones...
 
 - Add navigator.sendBeacon() to tell the server that the window/connectionID has closed
-- Create a deploy-cutie.sh that pulls from repo, issues required build commands, then `npm run preview` (or somesuch)
 - Change latency chart Y-axis to 250ms
 - If web GUI can't initially make WebRTC connection, error message should be "Can't make WebRTC connection" not "Collection stopped: WebRTC connection failed"
 - See **Testing Ideas** below
-- Make `npm run build` work
-  - Need to understand @sveltejs/adapter-auto, adapter-node, adapter-cloudflare...
 - (maybe) Display a spinner centered above the entire page from the time of the Start until it's connected
 - Create a Docker container with docker-compose.yml for ease of remote installation
   - Add TURN server capability
@@ -27,6 +24,8 @@ Ideas that have occurred to me. Some might be good ones...
   Happened again after git pull; immediately reloaded
   and retried worked as expected.
 - Move the CSS out of the end of +page.svelte (?)
+- Email/save results of a (failed) test before restarting/reloading
+- Fix "page" in _+page.svelte_, line 4
 
 ## Bugs
 
@@ -114,3 +113,6 @@ solves it.)_
 - Server init code (printing version, etc) should appear first in output
 - In the server connected message, include the number of current connections, maybe total connections since start time
 - Add `/api/stats` to display current stats
+- Create a deploy-cutie.sh that pulls from repo, issues required build commands, then `npm run preview` (or somesuch)
+- Make `npm run build` work
+  - Need to understand @sveltejs/adapter-auto, adapter-node, adapter-cloudflare...
