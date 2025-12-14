@@ -303,9 +303,10 @@
 						<span class="meta">{entry.at}</span>
 						<span class="bubble">
 							<strong>{entry.direction === 'in' ? 'Server' : 'Client'}:</strong>
-							{entry.direction === 'in' && entry.connectionId
+							{entry.payload}
+							<!-- {entry.direction === 'in' && entry.connectionId
 								? entry.payload.replace(/}$/, `, "connectionId": "${entry.connectionId}" }`)
-								: entry.payload}
+								: entry.payload} -->
 						</span>
 					</li>
 				{/each}

@@ -150,13 +150,7 @@ function logCandidate(stage: 'Local' | 'Remote', candidateInit: RTCIceCandidateI
 		return;
 	}
 
-	logger.debug(`[RTC] ${stage} ICE candidate (${info.type})
-		address: ${JSON.stringify(info.address)}
-		port: ${JSON.stringify(info.port)}
-		protocol: ${JSON.stringify(info.protocol)},
-		raw: ${JSON.stringify(info.raw)}
-	`);
-	console.log(`[RTC] ${stage} ICE candidate (${info.type})
+	logger.info(`[RTC] ${stage} ICE candidate (${info.type})
 		address: ${JSON.stringify(info.address)}
 		port: ${JSON.stringify(info.port)}
 		protocol: ${JSON.stringify(info.protocol)},
@@ -176,9 +170,6 @@ function logGatheringSummary(stage: 'Local' | 'Remote', candidates: RTCIceCandid
 	}, {});
 
 	logger.debug(
-		`[RTC] ${stage} ICE gathering complete ${candidates.length} ${JSON.stringify(counts)}`
-	);
-	console.log(
 		`[RTC] ${stage} ICE gathering complete ${candidates.length} ${JSON.stringify(counts)}`
 	);
 }
@@ -207,7 +198,6 @@ function waitForIceGatheringComplete(peer: RTCPeerConnection): Promise<void> {
 	return new Promise((resolve) => {
 		const finish = () => {
 			logger.info('ICE gathering finished. Final state:', peer.iceGatheringState);
-			console.log('ICE gathering finished. Final state:', peer.iceGatheringState);
 			clearTimeout(timeout);
 			peer.removeEventListener?.('icegatheringstatechange', handleStateChange);
 			resolve();
@@ -215,7 +205,7 @@ function waitForIceGatheringComplete(peer: RTCPeerConnection): Promise<void> {
 
 		const handleStateChange = () => {
 			logger.info('ICE gathering state changed to:', peer.iceGatheringState);
-			console.log('ICE gathering state changed to:', peer.iceGatheringState);
+			// console.log('ICE gathering state changed to:', peer.iceGatheringState);
 			if (peer.iceGatheringState === 'complete') {
 				finish();
 			}
@@ -340,9 +330,9 @@ async function negotiate(
 
 	const { sdp: normalisedSdp, replacements } = normaliseSdpCandidates(localDescription.sdp ?? '');
 	if (replacements > 0) {
-		console.log(`[RTC] Normalised ${replacements} candidate(s) in local SDP`);
+		logger.info(`[RTC] Normalised ${replacements} candidate(s) in local SDP`);
 
-		logger.debug(`[RTC] Normalised ${replacements} candidate(s) in local SDP`);
+		// logger.debug(`[RTC] Normalised ${replacements} candidate(s) in local SDP`);
 	}
 
 	let candidatePayload = gatheredCandidates;

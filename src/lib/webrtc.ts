@@ -24,7 +24,6 @@ export type MessageEntry = {
 	direction: 'in' | 'out';
 	payload: string;
 	at: string;
-	connectionId?: string | null;
 };
 
 export type WebRtcState = {

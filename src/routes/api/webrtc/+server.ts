@@ -1,11 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import wrtc from '@roamhq/wrtc';
-import {
-	serverStartTime,
-	webrtcConnections,
-	incrementWebrtcConnections
-} from '$lib/server/runtimeState';
+import { incrementWebrtcConnections } from '$lib/server/runtimeState';
 import {
 	connections,
 	finalizeConnection,
@@ -74,7 +70,7 @@ function normaliseLocalCandidate(candidate: RTCIceCandidateInit): RTCIceCandidat
  */
 function registerConnection(pc: RTCPeerConnection): string {
 	const id = crypto.randomUUID();
-	const managed: ManagedConnection = { id, pc, startedAt: new Date() };
+	const managed: ManagedConnection = { id, pc, startedAt: new Date(), reason: '' };
 
 	pc.onconnectionstatechange = () => {
 		if (
@@ -85,7 +81,11 @@ function registerConnection(pc: RTCPeerConnection): string {
 			logger.info(
 				`Connection state ended: state: ${pc.iceConnectionState} gathering: ${pc.iceGatheringState}`
 			);
-			finalizeConnection(id);
+			finalizeConnection(id, `${pc.iceConnectionState} / ${pc.iceGatheringState}`);
+		} else {
+			logger.info(
+				`Connection state changed: state: ${pc.iceConnectionState} gathering: ${pc.iceGatheringState}`
+			);
 		}
 	};
 
@@ -151,7 +151,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	pc.oniceconnectionstatechange = () => {
 		logger.debug(
-			`ICE state changed; id: ${connectionId} state: ${pc.iceConnectionState} gathering: ${pc.iceGatheringState} connections: ${connections.size}`
+			`ICE state changed; id: ${connectionId} state: ${pc.iceConnectionState} gathering: ${pc.iceGatheringState}`
 		);
 	};
 
@@ -184,7 +184,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	pc.onicecandidateerror = (_event: unknown) => {
 		const foo: any = _event;
-		logger.info(`Server ICE candidate error ${foo.address} ${foo.errorCode} "${foo.errorText}"`);
+		logger.debug(`Server ICE candidate error ${foo.address} ${foo.errorCode} "${foo.errorText}"`);
 	};
 
 	pc.ondatachannel = (event) => {
@@ -319,12 +319,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		iceConnectionState: pc.iceConnectionState,
 		iceGatheringState: pc.iceGatheringState
 	});
-	// console.log('WebRTC answer ready', {
-	// 	connectionId,
-	// 	localCandidateCount: localCandidates.length,
-	// 	iceConnectionState: pc.iceConnectionState,
-	// 	iceGatheringState: pc.iceGatheringState
-	// });
 
 	return json(
 		{
@@ -352,7 +346,7 @@ export const DELETE: RequestHandler = async ({ url }) => {
 	logger.debug(`Deleting connection: ${managed.id}`);
 	// console.log(`Deleting connection: ${managed.id}`);
 	managed.pc.close();
-	finalizeConnection(connectionId);
+	finalizeConnection(connectionId, 'Client DELETE');
 
 	return json({ closed: true });
 };

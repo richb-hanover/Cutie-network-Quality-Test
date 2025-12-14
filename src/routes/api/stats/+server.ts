@@ -31,14 +31,14 @@ export const GET: RequestHandler = () => {
 		const durationMs = now.getTime() - connection.startedAt.getTime();
 		return {
 			connectionId: connection.id,
-			startTime: formatDateTime(connection.startedAt),
-			duration: formatDuration(durationMs)
+			startTime: formatDateTime(connection.startedAt) + ' / ' + formatDuration(durationMs),
+			reason: connection.reason
 		};
 	});
 	const recentConnectionDetails = oldConnections.map((connection) => ({
 		connectionId: connection.id,
-		startTime: formatDateTime(connection.startedAt),
-		duration: formatDuration(connection.durationMs)
+		startTime: formatDateTime(connection.startedAt) + ' / ' + formatDuration(connection.durationMs),
+		reason: connection.reason
 	}));
 
 	return json({
@@ -48,7 +48,7 @@ export const GET: RequestHandler = () => {
 		totalVisitors: numberVisitors,
 		currentConnections: connections.size,
 		totalConnections: webrtcConnections,
-		connectionIds: Array.from(connections.keys()),
+		// connectionIds: Array.from(connections.keys()),
 		connections: connectionDetails,
 		oldConnections: recentConnectionDetails
 	});

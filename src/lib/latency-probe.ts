@@ -1,5 +1,5 @@
-// import { getLogger } from './logger';
-// const logger = getLogger('latency-probe');
+import { getLogger } from './logger';
+const logger = getLogger('latency-probe');
 
 export const LATENCY_INTERVAL_MS = 100; // msec
 export const LOSS_TIMEOUT_MS = 2000; // msec
@@ -307,7 +307,7 @@ export function initializeLatencyMonitor(options: LatencyMonitorOptions = {}): L
 			parsed = JSON.parse(payload);
 			// console.log(`****** Received: ${payload} at ${now()}`);
 		} catch {
-			console.info(`receiveProbe received non-JSON: ${payload}`);
+			logger.info(`receiveProbe received non-JSON: ${payload}`);
 			return false; // and tell the world that we didn't handle it
 		}
 
@@ -318,7 +318,7 @@ export function initializeLatencyMonitor(options: LatencyMonitorOptions = {}): L
 			(parsed as { type: unknown }).type !== 'latency-probe' ||
 			typeof (parsed as { seq?: unknown }).seq !== 'number'
 		) {
-			console.info(`receiveProbe received bad payload: ${payload}`);
+			logger.info(`receiveProbe received bad payload:  ${payload}`);
 			return false;
 		}
 
