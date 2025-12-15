@@ -307,7 +307,7 @@ export function initializeLatencyMonitor(options: LatencyMonitorOptions = {}): L
 			parsed = JSON.parse(payload);
 			// console.log(`****** Received: ${payload} at ${now()}`);
 		} catch {
-			logger.info(`receiveProbe received non-JSON: ${payload}`);
+			logger.info(`receiveProbe received non-JSON: "${payload}"`);
 			return false; // and tell the world that we didn't handle it
 		}
 

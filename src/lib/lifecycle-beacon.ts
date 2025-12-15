@@ -49,6 +49,7 @@ function sendLifecycleBeacon(reason: BeaconReason, extra: Record<string, unknown
 	};
 
 	logger.info(`beacon: ${reason} ${JSON.stringify(extra)}`);
+
 	const body = JSON.stringify(payload);
 	const blob = new Blob([body], { type: 'application/json' });
 
@@ -64,13 +65,13 @@ function sendLifecycleBeacon(reason: BeaconReason, extra: Record<string, unknown
 
 sendLifecycleBeacon('init');
 
-document.addEventListener('visibilitychange', () => {
-	if (document.visibilityState === 'hidden') {
-		sendLifecycleBeacon('visibility-hidden');
-	} else {
-		sendLifecycleBeacon('visibility-visible');
-	}
-});
+// document.addEventListener('visibilitychange', () => {
+// 	if (document.visibilityState === 'hidden') {
+// 		sendLifecycleBeacon('visibility-hidden');
+// 	} else {
+// 		sendLifecycleBeacon('visibility-visible');
+// 	}
+// });
 
 window.addEventListener('pagehide', (event) => {
 	const e = event as PageTransitionEvent;

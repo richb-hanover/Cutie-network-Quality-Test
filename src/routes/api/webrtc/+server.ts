@@ -243,9 +243,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			const port = remote.port ?? remote.portNumber ?? 'unknown';
 
 			// logger.info(`Remote ICE Candidate selected: ${JSON.stringify(remote)}`);
-			// "ip{" is frequently "" as some kind of security measure
+			// "${ip}" is frequently "" as some kind of security measure
 			logger.debug(
-				`Remote ICE candidate selected: connection: ${connectionId} ip: ${ip} port: ${port} foundation: ${remote.foundation}`
+				`Remote ICE candidate selected: connection: ${connectionId} ip: ${ip} port: ${port}`
 			);
 		};
 
@@ -318,12 +318,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	connectionId = registerConnection(pc);
 
-	logger.debug('WebRTC answer ready', {
-		connectionId,
-		localCandidateCount: localCandidates.length,
-		iceConnectionState: pc.iceConnectionState,
-		iceGatheringState: pc.iceGatheringState
-	});
+	logger.debug(
+		`WebRTC answer ready: ${connectionId} ${pc.iceConnectionState} ${pc.iceGatheringState}`
+	);
 
 	return json(
 		{

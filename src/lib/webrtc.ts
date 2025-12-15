@@ -204,6 +204,7 @@ export async function connectToServer(): Promise<void> {
 		return;
 	}
 
+	logger.info(`Clicked Start button`);
 	webrtcState.update((current) => ({
 		...current,
 		isConnecting: true,
@@ -366,6 +367,8 @@ export async function disconnect(
 		return;
 	}
 
+	logger.info(`Clicked Stop button - reason: ${reason}`);
+
 	webrtcState.update((current) => ({
 		...current,
 		isDisconnecting: true,
@@ -447,6 +450,8 @@ export function sendMessage(outgoingMessage: string): boolean {
 	if (!state.connection || !trimmed) {
 		return false;
 	}
+
+	logger.info(`Sending message: "${outgoingMessage}"`);
 
 	state.connection.dataChannel.send(trimmed);
 

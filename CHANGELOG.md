@@ -7,6 +7,10 @@
   - Added `injectLatencyInfo()` function that takes an array of triples and injects them into the chart just as if they had been received "in real time"
   - Added `getLatencyMonitorStats()` that retrieves `{ MOSQuality, PacketLoss, Latency, Jitter }` with arrays of four values that mirror those in the Latency Monitor.
 
+- Log when client connection is established
+- Log when start/stop button clicked
+- Other logging tweaks
+
 ---
 
 ## Version 0.2.12 - 2025-12-14

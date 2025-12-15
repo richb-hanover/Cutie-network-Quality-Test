@@ -136,26 +136,15 @@ function logCandidate(stage: 'Local' | 'Remote', candidateInit: RTCIceCandidateI
 	const info = extractCandidateInfo(candidateInit);
 	if (!info) {
 		logger.debug(`[RTC] ${stage} ICE candidate`, candidateInit);
-		console.log(`[RTC] ${stage} ICE candidate`, candidateInit);
+		// console.log(`[RTC] ${stage} ICE candidate`, candidateInit);
 		return;
 	}
 
 	if (info.type === 'host') {
-		// logger.debug(`[RTC] ${stage} ICE candidate (${info.type})`, {
-		// 	address: info.address,
-		// 	port: info.port,
-		// 	protocol: info.protocol,
-		// 	raw: info.raw
-		// });
 		return;
 	}
 
-	logger.info(`[RTC] ${stage} ICE candidate (${info.type})
-		address: ${JSON.stringify(info.address)}
-		port: ${JSON.stringify(info.port)}
-		protocol: ${JSON.stringify(info.protocol)},
-		raw: ${JSON.stringify(info.raw)}
-	`);
+	logger.info(`[RTC] ${stage} ICE candidate: ${JSON.stringify(info.raw)}`);
 }
 
 function logGatheringSummary(stage: 'Local' | 'Remote', candidates: RTCIceCandidateInit[]): void {
@@ -392,6 +381,7 @@ async function negotiate(
 		peer.onicecandidate = originalCandidateHandler;
 	}
 
+	logger.info(`Peer connection established: connectionId ${connectionId}`);
 	return {
 		connectionId,
 		dataChannel
@@ -418,6 +408,7 @@ export async function createServerConnection(
 	options: CreateServerConnectionOptions = {}
 ): Promise<ServerConnection> {
 	const { rtcConfig, signalUrl = DEFAULT_SIGNAL_URL, onMessage, onOpen, onError, label } = options;
+	let latestConnectionId: string | null = null;
 
 	const peer = new RTCPeerConnection(
 		rtcConfig ?? {
@@ -430,6 +421,11 @@ export async function createServerConnection(
 	);
 
 	peer.onconnectionstatechange = () => {
+		logger.info(
+			`Peer connection state: ${peer.connectionState} (connectionId: ${
+				latestConnectionId ?? 'pending'
+			})`
+		);
 		if (peer.connectionState === 'failed') {
 			onError?.(new Error('WebRTC connection failed'));
 		}
@@ -441,10 +437,12 @@ export async function createServerConnection(
 		onDataChannelOpen: onOpen,
 		onDataChannelClose: onError
 			? (_channel) => {
+					logger.info(`datachannel onError: ${JSON.stringify(_channel)}`);
 					onError(new Error('Data channel closed'));
 				}
 			: undefined
 	});
+	latestConnectionId = connectionId;
 
 	async function close() {
 		try {
