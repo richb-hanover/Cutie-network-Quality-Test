@@ -9,7 +9,16 @@
 
 ---
 
-## Version 0.2.10 - 2025-12-013
+## Version 0.2.12 - 2025-12-14
+
+- Add `connectionId` to the beacon where available
+  so the server logs can see what's happening when
+  there are transitions on the client
+- Server log any message sent from the GUI in addition
+  to echoing it
+- Bump version to 0.2.12 (0.2.11 not released)
+
+## Version 0.2.10 - 2025-12-13
 
 - Improved logging surrounding connection start/end; removed redundant logger.info() & console.log()
 - Add "reason" code to `/api/stats`

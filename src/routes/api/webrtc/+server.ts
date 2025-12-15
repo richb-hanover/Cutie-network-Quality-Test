@@ -283,6 +283,11 @@ export const POST: RequestHandler = async ({ request }) => {
 		 * All the rest of the magic happens on the client
 		 */
 		channel.onmessage = (msgEvent) => {
+			try {
+				JSON.parse(msgEvent.data);
+			} catch {
+				logger.info(`Message received: ${JSON.stringify(msgEvent)}`);
+			}
 			channel.send(msgEvent.data);
 		};
 	};

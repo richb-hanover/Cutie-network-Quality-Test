@@ -1,4 +1,4 @@
-import { get, writable } from 'svelte/store';
+import { derived, get, writable } from 'svelte/store';
 import {
 	initializeLatencyMonitor,
 	createEmptyLatencyStats,
@@ -68,6 +68,8 @@ const COLLECTION_DURATION_MS = 2 * 60 * 60 * 1000;
 const LATENCY_CSV_HEADER = '# sequence,sentAt,receivedAt';
 
 export const webrtcState = writable<WebRtcState>(initialState);
+
+export const connectionIdStore = derived(webrtcState, (state) => state.connectionId);
 
 const textDecoder = new TextDecoder();
 let stopStats: (() => void) | null = null;

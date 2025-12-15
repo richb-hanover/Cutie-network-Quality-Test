@@ -1,6 +1,7 @@
 // lifecycle-beacon.ts
 
 import { getLogger } from './logger';
+import { connectionIdStore } from './webrtc';
 const logger = getLogger('beacon');
 
 type BeaconReason =
@@ -25,6 +26,16 @@ interface BeaconPayload {
 const BEACON_URL = '/api/beacon';
 
 const pageLifecycleId = Math.random().toString(36).slice(2) + '-' + Date.now().toString(36);
+let latestConnectionId: string | null = null;
+
+if (typeof window !== 'undefined') {
+	const unsubscribe = connectionIdStore.subscribe((connectionId) => {
+		latestConnectionId = connectionId;
+	});
+	window.addEventListener('unload', () => {
+		unsubscribe();
+	});
+}
 
 function sendLifecycleBeacon(reason: BeaconReason, extra: Record<string, unknown> = {}): void {
 	const payload: BeaconPayload = {
@@ -33,6 +44,7 @@ function sendLifecycleBeacon(reason: BeaconReason, extra: Record<string, unknown
 		visibilityState: document.visibilityState,
 		url: window.location.href,
 		pageLifecycleId,
+		...(latestConnectionId ? { connectionId: latestConnectionId } : {}),
 		...extra
 	};
 

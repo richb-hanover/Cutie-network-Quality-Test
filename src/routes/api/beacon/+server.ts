@@ -16,7 +16,11 @@ export const POST: RequestHandler = async ({ request }) => {
 	let payload;
 	try {
 		payload = await request.json();
-		const summary = { reason: payload.reason, state: payload.visibilityState };
+		const summary = {
+			connectionId: payload.connectionId,
+			reason: payload.reason,
+			state: payload.visibilityState
+		};
 		logger.info(`${JSON.stringify(summary)}`);
 	} catch {
 		logger.info(`Expected JSON body with valid WebRTC offer: ${JSON.stringify(payload)}`);
